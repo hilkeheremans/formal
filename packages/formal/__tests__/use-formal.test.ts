@@ -1,5 +1,12 @@
 import { renderHook, cleanup, act } from 'react-hooks-testing-library'
+import * as yup from 'yup'
 import useFormal from '../src/use-formal'
+
+const schema = yup.object().shape({
+  firstName: yup.string().required(),
+  lastName: yup.string(),
+  email: yup.string().email().required(),
+})
 
 const initialValues = {
   firstName: 'Tony',
@@ -218,7 +225,47 @@ describe('useFormal()', () => {
 
     it('should call clearErrors() before validating', async () => {})
     it('should change isValidating only if schema contains async validations', () => {})
-    it('should call setErrors() if the validation failed', () => {})
+    it('should set the errors in state if the validation failed', async () => {
+      const { result } = renderHook(() =>
+        useFormal(
+          {},
+          {
+            schema,
+            onSubmit: values => values,
+          }
+        )
+      )
+
+      try {
+        await result.current.validate()
+      } catch (e) {
+        // ignore
+      }
+
+      expect(result.current.errors).toEqual(
+        {'email': 'email is a required field', 'firstName': 'firstName is a required field'}
+      )
+    })
+
+    it('should throw the errors if the validation failed', async () => {
+      const { result } = renderHook(() =>
+        useFormal(
+          {},
+          {
+            schema,
+            onSubmit: values => values,
+          }
+        )
+      )
+
+      try {
+        await result.current.validate()
+      } catch (e) {
+        expect(e).toEqual(
+          {'email': 'email is a required field', 'firstName': 'firstName is a required field'}
+        )
+      }
+    })
   })
 
   describe('.submit()', () => {

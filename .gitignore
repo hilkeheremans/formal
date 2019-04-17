@@ -5,3 +5,4 @@ packages/**/lib
 storybook-static
 *.log
 .env
+.idea
